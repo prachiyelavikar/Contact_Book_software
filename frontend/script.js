@@ -67,6 +67,7 @@ const tableBody = document.querySelector('#contactTable tbody');
 const searchInput = document.getElementById('searchInput');
 
 let editId = null; // backend मधला contact id वापरू
+const API_BASE_URL = 'https://contact-book-software-2.onrender.com'; // backend URL
 
 // फॉर्म सबमिट झाल्यावर
 form.addEventListener('submit', function(e) {
@@ -84,7 +85,7 @@ form.addEventListener('submit', function(e) {
 
     if (editId === null) {
         // Add new contact - POST request
-        fetch('http://localhost:3000/api/contacts', {
+        fetch('API_BASE_URL/api/contacts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(contactData)
@@ -97,7 +98,7 @@ form.addEventListener('submit', function(e) {
             .catch(err => alert("Add करताना error: " + err));
     } else {
         // Update contact - PUT request
-        fetch(`http://localhost:3000/api/contacts/${editId}`, {
+        fetch(`API_BASE_URL/api/contacts/${editId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(contactData)
@@ -114,7 +115,7 @@ form.addEventListener('submit', function(e) {
 
 // सर्व contacts fetch करणे (GET request)
 function loadContacts() {
-    fetch('http://localhost:3000/api/contacts')
+    fetch('API_BASE_URL/api/contacts')
         .then(res => res.json())
         .then(data => {
             renderTable(data);
@@ -147,7 +148,7 @@ function renderTable(contacts) {
 function deleteContact(id) {
     if (!confirm("हा contact delete करायचा का?")) return;
 
-    fetch(`http://localhost:3000/api/contacts/${id}`, {
+    fetch(`API_BASE_URL/api/contacts/${id}`, {
             method: 'DELETE'
         })
         .then(res => res.json())
@@ -157,7 +158,7 @@ function deleteContact(id) {
 
 // Edit contact
 function editContact(id) {
-    fetch(`http://localhost:3000/api/contacts/${id}`)
+    fetch(`API_BASE_URL/api/contacts/${id}`)
         .then(res => res.json())
         .then(contact => {
             document.getElementById('name').value = contact.name;
