@@ -114,14 +114,34 @@ form.addEventListener('submit', function(e) {
 });
 
 // सर्व contacts fetch करणे (GET request)
+// function loadContacts() {
+//     fetch('https://contact-book-software-2.onrender.com/api/contacts')
+//         .then(res => res.json())
+//         .then(data => {
+//             renderTable(data);
+//         })
+//         .catch(err => alert("Contacts load करताना error: " + err));
+// }
+
+
 function loadContacts() {
     fetch('https://contact-book-software-2.onrender.com/api/contacts')
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            return res.json();
+        })
         .then(data => {
+            console.log("Contacts loaded:", data);
             renderTable(data);
         })
-        .catch(err => alert("Contacts load करताना error: " + err));
+        .catch(err => {
+            console.error("Error loading contacts:", err);
+            alert("Contacts लोड करताना त्रुटी आली: " + err.message);
+        });
 }
+
 
 // टेबल रेंडर करणे
 // function renderTable(contacts) {
