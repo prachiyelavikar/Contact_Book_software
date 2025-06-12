@@ -9,16 +9,35 @@ exports.getAllContacts = (req, res) => {
 };
 
 // Add new contact
+// exports.addContact = (req, res) => {
+//     const { name, mobile, email } = req.body;
+//     db.query(
+//         "INSERT INTO contact_book (name, mobile, email) VALUES (?, ?, ?)", [name, mobile, email],
+//         (err, result) => {
+//             if (err) return res.status(500).json(err);
+//             res.json({ message: "Contact added" });
+//         }
+//     );
+// };
+
 exports.addContact = (req, res) => {
     const { name, mobile, email } = req.body;
     db.query(
-        "INSERT INTO contact_book (name, mobile, email) VALUES (?, ?, ?)", [name, mobile, email],
+        "INSERT INTO contact_book (name, mobile, email) VALUES (?, ?, ?)",
+        [name, mobile, email],
         (err, result) => {
             if (err) return res.status(500).json(err);
-            res.json({ message: "Contact added" });
+
+            // New contact insert झाल्यावर सर्व contacts परत पाठव
+            db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE", (err2, result2) => {
+                if (err2) return res.status(500).json(err2);
+                res.json(result2); // ✅ array पाठवत आहे
+            });
         }
     );
 };
+
+
 
 // Get contact by ID
 exports.getContactById = (req, res) => {
@@ -39,17 +58,37 @@ exports.getContactById = (req, res) => {
 
 
 // Update contact
+// exports.updateContact = (req, res) => {
+//     const { id } = req.params;
+//     const { name, mobile, email } = req.body;
+//     db.query(
+//         "UPDATE contact_book SET name=?, mobile=?, email=? WHERE id=?", [name, mobile, email, id],
+//         (err, result) => {
+//             if (err) return res.status(500).json(err);
+//             res.json({ message: "Contact updated" });
+//         }
+//     );
+// };
+
 exports.updateContact = (req, res) => {
     const { id } = req.params;
     const { name, mobile, email } = req.body;
     db.query(
-        "UPDATE contact_book SET name=?, mobile=?, email=? WHERE id=?", [name, mobile, email, id],
+        "UPDATE contact_book SET name=?, mobile=?, email=? WHERE id=?",
+        [name, mobile, email, id],
         (err, result) => {
             if (err) return res.status(500).json(err);
-            res.json({ message: "Contact updated" });
+
+            db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE", (err2, result2) => {
+                if (err2) return res.status(500).json(err2);
+                res.json(result2); // ✅ updated list
+            });
         }
     );
 };
+
+
+
 
 // Soft delete contact
 exports.deleteContact = (req, res) => {
