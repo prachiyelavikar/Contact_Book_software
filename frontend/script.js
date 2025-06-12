@@ -85,7 +85,7 @@ form.addEventListener('submit', function(e) {
 
     if (editId === null) {
         // Add new contact - POST request
-        fetch('API_BASE_URL/api/contacts', {
+        fetch('https://contact-book-software-2.onrender.com/api/contacts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(contactData)
@@ -98,7 +98,7 @@ form.addEventListener('submit', function(e) {
             .catch(err => alert("Add करताना error: " + err));
     } else {
         // Update contact - PUT request
-        fetch(`API_BASE_URL/api/contacts/${editId}`, {
+        fetch(`https://contact-book-software-2.onrender.com/api/contacts/${editId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(contactData)
@@ -115,7 +115,7 @@ form.addEventListener('submit', function(e) {
 
 // सर्व contacts fetch करणे (GET request)
 function loadContacts() {
-    fetch('API_BASE_URL/api/contacts')
+    fetch('https://contact-book-software-2.onrender.com/api/contacts')
         .then(res => res.json())
         .then(data => {
             renderTable(data);
@@ -148,7 +148,7 @@ function renderTable(contacts) {
 function deleteContact(id) {
     if (!confirm("हा contact delete करायचा का?")) return;
 
-    fetch(`API_BASE_URL/api/contacts/${id}`, {
+    fetch(`https://contact-book-software-2.onrender.com/api/contacts/${id}`, {
             method: 'DELETE'
         })
         .then(res => res.json())
@@ -158,7 +158,7 @@ function deleteContact(id) {
 
 // Edit contact
 function editContact(id) {
-    fetch(`API_BASE_URL/api/contacts/${id}`)
+    fetch(`https://contact-book-software-2.onrender.com/api/contacts/${id}`)
         .then(res => res.json())
         .then(contact => {
             document.getElementById('name').value = contact.name;
