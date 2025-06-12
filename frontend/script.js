@@ -124,7 +124,34 @@ function loadContacts() {
 }
 
 // टेबल रेंडर करणे
+// function renderTable(contacts) {
+//     const filterText = searchInput.value.toLowerCase();
+//     tableBody.innerHTML = '';
+
+//     contacts
+//         .filter(c => c.name.toLowerCase().includes(filterText))
+//         .forEach(c => {
+//             const row = document.createElement('tr');
+//             row.innerHTML = `
+//         <td>${c.name}</td>
+//         <td>${c.mobile}</td>
+//         <td>${c.email}</td>
+//         <td>
+//           <button onclick="editContact(${c.id})">Edit</button>
+//           <button onclick="deleteContact(${c.id})">Delete</button>
+//         </td>`;
+//             tableBody.appendChild(row);
+//         });
+// }
+
+
 function renderTable(contacts) {
+    if (!Array.isArray(contacts)) {
+        console.error("❌ renderTable expects an array, but got:", contacts);
+        alert("Contacts लोड करताना त्रुटी आली.");
+        return;
+    }
+
     const filterText = searchInput.value.toLowerCase();
     tableBody.innerHTML = '';
 
@@ -133,16 +160,17 @@ function renderTable(contacts) {
         .forEach(c => {
             const row = document.createElement('tr');
             row.innerHTML = `
-        <td>${c.name}</td>
-        <td>${c.mobile}</td>
-        <td>${c.email}</td>
-        <td>
-          <button onclick="editContact(${c.id})">Edit</button>
-          <button onclick="deleteContact(${c.id})">Delete</button>
-        </td>`;
+                <td>${c.name}</td>
+                <td>${c.mobile}</td>
+                <td>${c.email}</td>
+                <td>
+                  <button onclick="editContact(${c.id})">Edit</button>
+                  <button onclick="deleteContact(${c.id})">Delete</button>
+                </td>`;
             tableBody.appendChild(row);
         });
 }
+
 
 // Delete contact - DELETE request
 function deleteContact(id) {
