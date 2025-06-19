@@ -1,23 +1,13 @@
 const db = require("../db/config");
 
 // Get all non-deleted contact_book
-// exports.getAllContacts = (req, res) => {
-//     db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE", (err, result) => {
-//         if (err) return res.status(500).json(err);
-//         res.json(result);
-//     });
-// };
-
-exports.get('/contacts', (req, res) => {
-    const sql = "SELECT * FROM contacts WHERE is_deleted = 0";
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error("❌ Error fetching contacts:", err); // <== हे टाक
-            return res.status(500).json({ error: "Database error" });
-        }
-        res.json(results);
+exports.getAllContacts = (req, res) => {
+    db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE", (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json(result);
     });
-});
+};
+
 
 // Add new contact
 // exports.addContact = (req, res) => {
