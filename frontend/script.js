@@ -110,7 +110,7 @@ form.addEventListener('submit', function (e) {
 
     if (editId === null) {
         // Add new contact - POST request
-        fetch('http://localhost:3000/api/contacts', {
+        fetch('https://contact-book-software-2.onrender.com/api/contacts', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(contactData)
@@ -127,7 +127,7 @@ form.addEventListener('submit', function (e) {
             .catch(err => showNotification("Error: " + err.message, "error")); // (New error handling)
     } else {
         // Update contact - PUT request
-        fetch(`http://localhost:3000/api/contacts/${editId}`, {
+        fetch(`https://contact-book-software-2.onrender.com/api/contacts/${editId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(contactData)
@@ -147,7 +147,7 @@ form.addEventListener('submit', function (e) {
 });
 
 function loadContacts() {
-    fetch('http://localhost:3000/api/contacts')
+    fetch('https://contact-book-software-2.onrender.com/api/contacts')
         .then(res => {
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
@@ -201,7 +201,7 @@ function deleteContact(id) {
     // डिलीट कन्फर्मेशन (New addition)
     if (!confirm("तुम्हाला खात्री आहे की हा कॉन्टॅक्ट डिलीट करायचा आहे?")) return;
 
-    fetch(`http://localhost:3000/api/contacts/${id}`, {
+    fetch(`https://contact-book-software-2.onrender.com/api/contacts/${id}`, {
         method: 'DELETE'
     })
         .then(res => res.json())
@@ -214,7 +214,7 @@ function deleteContact(id) {
 
 // Edit contact
 function editContact(id) {
-    fetch(`http://localhost:3000/api/contacts/${id}`)
+    fetch(`https://contact-book-software-2.onrender.com/api/contacts/${id}`)
         .then(res => res.json())
         .then(contact => {
             document.getElementById('name').value = contact.name;
