@@ -3,7 +3,10 @@ const db = require("../db/config");
 // Get all non-deleted contact_book
 exports.getAllContacts = (req, res) => {
     db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE", (err, result) => {
-        if (err) return res.status(500).json(err);
+        if (err) {
+            console.error("Error fetching contacts:", err);
+            return res.status(500).json({ message: "Error fetching contacts", error: err.message });
+        }
         res.json(result);
     });
 };
@@ -62,7 +65,10 @@ exports.getContactById = (req, res) => {
     db.query(
         "SELECT * FROM contact_book WHERE id = ? AND is_deleted = FALSE", [id],
         (err, result) => {
-            if (err) return res.status(500).json(err);
+            if (err) {
+                console.error("Error fetching contact by ID:", err);
+                return res.status(500).json({ message: "Error fetching contact", error: err.message });
+            }
 
             if (result.length === 0) {
                 return res.status(404).json({ message: "Contact not found" });

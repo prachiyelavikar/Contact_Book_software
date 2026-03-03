@@ -12,11 +12,11 @@
 // const contactRoutes = require("./routes/contact.routes");
 // app.use("/api/contacts", contactRoutes);
 
-// // Server Listen
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => {
-//     console.log(`🚀 Server started at http://localhost:${PORT}`);
-// });
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`🚀 Server started at http://localhost:${PORT}`);
+});
 
 
 
@@ -39,14 +39,4 @@ app.get("/", (req, res) => {
     res.send("✅ Contact Book Backend is Live!");
 });
 
-// Server Listen
-// const PORT = process.env.PORT || 3000;
-// app.listen(PORT, () => {
-//     console.log(`🚀 Server started on port ${PORT}`);
-// });
-
-const PORT = 3000;
-
-app.listen(PORT, () => {
-    console.log(`🚀 Server started on port ${PORT}`);
-});
+// Server Listen handled above
