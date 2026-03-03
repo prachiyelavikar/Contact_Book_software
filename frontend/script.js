@@ -65,19 +65,44 @@
 const form = document.getElementById('contactForm');
 const tableBody = document.querySelector('#contactTable tbody');
 const searchInput = document.getElementById('searchInput');
+const notificationDiv = document.getElementById('notification'); // (New addition)
 
-let editId = null; // backend मधला contact id वापरू
-const API_BASE_URL = 'https://contact-book-software-2.onrender.com'; // backend URL
+let editId = null;
+
+// नोटिफिकेशन दाखवण्यासाठी फंक्शन (New addition)
+function showNotification(message, type = 'success') {
+    notificationDiv.textContent = message;
+    notificationDiv.className = `notification ${type}`;
+    notificationDiv.style.display = 'block';
+
+    // ५ सेकंदानंतर नोटिफिकेशन लपवा
+    setTimeout(() => {
+        notificationDiv.style.display = 'none';
+    }, 5000);
+}
 
 // फॉर्म सबमिट झाल्यावर
-form.addEventListener('submit', function(e) {
+form.addEventListener('submit', function (e) {
     e.preventDefault();
     const name = document.getElementById('name').value.trim();
     const mobile = document.getElementById('mobile').value.trim();
     const email = document.getElementById('email').value.trim();
 
+    // फ्रंटएंड व्हॅलिडेशन (New addition)
     if (!name || !mobile || !email) {
-        alert("सर्व फील्ड भरावीत.");
+        showNotification("कृपया सर्व फील्ड भरा.", "error");
+        return;
+    }
+
+    // मोबाईल नंबर व्हॅलिडेशन (१० आकडे)
+    if (!/^\d{10}$/.test(mobile)) {
+        showNotification("कृपया वैध १० अंकी मोबाईल नंबर टाका.", "error");
+        return;
+    }
+
+    // ईमेल व्हॅलिडेशन
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showNotification("कृपया वैध ईमेल आयडी टाका.", "error");
         return;
     }
 
@@ -85,47 +110,44 @@ form.addEventListener('submit', function(e) {
 
     if (editId === null) {
         // Add new contact - POST request
-        fetch('https://contact-book-software-2.onrender.com/api/contacts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(contactData)
+        fetch('http://localhost:3000/api/contacts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(contactData)
+        })
+            .then(res => {
+                if (!res.ok) return res.json().then(err => { throw new Error(err.message) });
+                return res.json();
             })
-            .then(res => res.json())
             .then(() => {
                 form.reset();
+                showNotification("कॉन्टॅक्ट यशस्वीरित्या सेव्ह झाला!"); // (New)
                 loadContacts();
             })
-            .catch(err => alert("Add करताना error: " + err));
+            .catch(err => showNotification("Error: " + err.message, "error")); // (New error handling)
     } else {
         // Update contact - PUT request
-        fetch(`https://contact-book-software-2.onrender.com/api/contacts/${editId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(contactData)
+        fetch(`http://localhost:3000/api/contacts/${editId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(contactData)
+        })
+            .then(res => {
+                if (!res.ok) return res.json().then(err => { throw new Error(err.message) });
+                return res.json();
             })
-            .then(res => res.json())
             .then(() => {
                 form.reset();
                 editId = null;
+                showNotification("कॉन्टॅक्ट यशस्वीरित्या अपडेट झाला!"); // (New)
                 loadContacts();
             })
-            .catch(err => alert("Update करताना error: " + err));
+            .catch(err => showNotification("Update error: " + err.message, "error")); // (New)
     }
 });
 
-// सर्व contacts fetch करणे (GET request)
-// function loadContacts() {
-//     fetch('https://contact-book-software-2.onrender.com/api/contacts')
-//         .then(res => res.json())
-//         .then(data => {
-//             renderTable(data);
-//         })
-//         .catch(err => alert("Contacts load करताना error: " + err));
-// }
-
-
 function loadContacts() {
-    fetch('https://contact-book-software-2.onrender.com/api/contacts')
+    fetch('http://localhost:3000/api/contacts')
         .then(res => {
             if (!res.ok) {
                 throw new Error(`HTTP error! status: ${res.status}`);
@@ -138,37 +160,14 @@ function loadContacts() {
         })
         .catch(err => {
             console.error("Error loading contacts:", err);
-            alert("Contacts लोड करताना त्रुटी आली: " + err.message);
+            showNotification("Contacts लोड करताना त्रुटी आली.", "error");
         });
 }
 
-
-// टेबल रेंडर करणे
-// function renderTable(contacts) {
-//     const filterText = searchInput.value.toLowerCase();
-//     tableBody.innerHTML = '';
-
-//     contacts
-//         .filter(c => c.name.toLowerCase().includes(filterText))
-//         .forEach(c => {
-//             const row = document.createElement('tr');
-//             row.innerHTML = `
-//         <td>${c.name}</td>
-//         <td>${c.mobile}</td>
-//         <td>${c.email}</td>
-//         <td>
-//           <button onclick="editContact(${c.id})">Edit</button>
-//           <button onclick="deleteContact(${c.id})">Delete</button>
-//         </td>`;
-//             tableBody.appendChild(row);
-//         });
-// }
-
-
+// टेबल रेंडर करणे आणि सर्च लॉजिक (Improved search logic)
 function renderTable(contacts) {
     if (!Array.isArray(contacts)) {
         console.error("❌ renderTable expects an array, but got:", contacts);
-        alert("Contacts लोड करताना त्रुटी आली.");
         return;
     }
 
@@ -176,49 +175,64 @@ function renderTable(contacts) {
     tableBody.innerHTML = '';
 
     contacts
-        .filter(c => c.name.toLowerCase().includes(filterText))
+        .filter(c =>
+            // नाव, मोबाईल किंवा ईमेल कशानेही सर्च करा (New logic)
+            c.name.toLowerCase().includes(filterText) ||
+            c.mobile.toLowerCase().includes(filterText) ||
+            c.email.toLowerCase().includes(filterText)
+        )
         .forEach(c => {
             const row = document.createElement('tr');
+            // 'data-label' अ‍ॅड केलं आहे जेणेकरून मोबाईलवर लेबल्स दिसतील (New addition)
             row.innerHTML = `
-                <td>${c.name}</td>
-                <td>${c.mobile}</td>
-                <td>${c.email}</td>
-                <td>
-                  <button onclick="editContact(${c.id})">Edit</button>
-                  <button onclick="deleteContact(${c.id})">Delete</button>
+                <td data-label="Name">${c.name}</td>
+                <td data-label="Mobile">${c.mobile}</td>
+                <td data-label="Email">${c.email}</td>
+                <td data-label="Actions">
+                  <button class="edit-btn" onclick="editContact(${c.id})">Edit</button>
+                  <button class="delete-btn" onclick="deleteContact(${c.id})" style="background-color: #dc3545;">Delete</button>
                 </td>`;
             tableBody.appendChild(row);
         });
 }
 
-
 // Delete contact - DELETE request
 function deleteContact(id) {
-    if (!confirm("हा contact delete करायचा का?")) return;
+    // डिलीट कन्फर्मेशन (New addition)
+    if (!confirm("तुम्हाला खात्री आहे की हा कॉन्टॅक्ट डिलीट करायचा आहे?")) return;
 
-    fetch(`https://contact-book-software-2.onrender.com/api/contacts/${id}`, {
-            method: 'DELETE'
-        })
+    fetch(`http://localhost:3000/api/contacts/${id}`, {
+        method: 'DELETE'
+    })
         .then(res => res.json())
-        .then(() => loadContacts())
-        .catch(err => alert("Delete करताना error: " + err));
+        .then(() => {
+            showNotification("कॉन्टॅक्ट डिलीट केला गेला."); // (New)
+            loadContacts();
+        })
+        .catch(err => showNotification("Delete करताना त्रुटी आली.", "error"));
 }
 
 // Edit contact
 function editContact(id) {
-    fetch(`https://contact-book-software-2.onrender.com/api/contacts/${id}`)
+    fetch(`http://localhost:3000/api/contacts/${id}`)
         .then(res => res.json())
         .then(contact => {
             document.getElementById('name').value = contact.name;
             document.getElementById('mobile').value = contact.mobile;
             document.getElementById('email').value = contact.email;
             editId = id;
+            // फॉर्मकडे स्क्रोल करा
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // (New)
         })
-        .catch(err => alert("Edit करताना error: " + err));
+        .catch(err => showNotification("डेटा लोड करताना त्रुटी आली.", "error"));
 }
 
-// Search input मध्ये बदल झाला की contacts लोड कर
-searchInput.addEventListener('input', loadContacts);
+// Search input मध्ये बदल झाला की contacts फिल्टर कर
+searchInput.addEventListener('input', () => {
+    // डायरेक्ट रेंडर टेबल कॉल न करता आधीच्या डेटावरूनच फिल्टर करावे लागेल किंवा पुन्हा लोड करावे लागेल
+    // इथे साध्या कोडसाठी पुन्हा लोड करूया
+    loadContacts();
+});
 
 // पेज लोड होताच contacts लोड कर
 window.onload = loadContacts;
