@@ -1,8 +1,10 @@
 const db = require("../db/config");
+const PDFDocument = require("pdfkit");
+const ExcelJS = require("exceljs");
 
 // Get all non-deleted contact_book
 exports.getAllContacts = (req, res) => {
-    db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE", (err, result) => {
+    db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE ORDER BY name ASC", (err, result) => {
         if (err) {
             console.error("Error fetching contacts:", err);
             return res.status(500).json({ message: "Error fetching contacts", error: err.message });
@@ -11,53 +13,34 @@ exports.getAllContacts = (req, res) => {
     });
 };
 
-
 // Add new contact
-// exports.addContact = (req, res) => {
-//     const { name, mobile, email } = req.body;
-//     db.query(
-//         "INSERT INTO contact_book (name, mobile, email) VALUES (?, ?, ?)", [name, mobile, email],
-//         (err, result) => {
-//             if (err) return res.status(500).json(err);
-//             res.json({ message: "Contact added" });
-//         }
-//     );
-// };
-
 exports.addContact = (req, res) => {
     const { name, mobile, email } = req.body;
 
-    // युनिक डेटा चेक: मोबाईल किंवा ईमेल आधीच आहे का ते तपासा (Start of New logic)
     const checkQuery = "SELECT * FROM contact_book WHERE (mobile = ? OR email = ?) AND is_deleted = FALSE";
     db.query(checkQuery, [mobile, email], (err, results) => {
         if (err) return res.status(500).json(err);
 
         if (results.length > 0) {
-            // जर डुप्लिकेट असेल तर एरर मेसेज पाठवा
             const existing = results[0];
             const field = existing.mobile === mobile ? "Mobile number" : "Email";
             return res.status(400).json({ message: `${field} आधीच अस्तित्वात आहे!` });
         }
 
-        // जर युनिक असेल तर इन्सर्ट करा
         db.query(
             "INSERT INTO contact_book (name, mobile, email) VALUES (?, ?, ?)",
             [name, mobile, email],
             (err, result) => {
                 if (err) return res.status(500).json(err);
 
-                // New contact insert झाल्यावर सर्व contacts परत पाठव
-                db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE", (err2, result2) => {
+                db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE ORDER BY name ASC", (err2, result2) => {
                     if (err2) return res.status(500).json(err2);
                     res.json(result2);
                 });
             }
         );
     });
-    // (End of New logic)
 };
-
-
 
 // Get contact by ID
 exports.getContactById = (req, res) => {
@@ -74,30 +57,16 @@ exports.getContactById = (req, res) => {
                 return res.status(404).json({ message: "Contact not found" });
             }
 
-            res.json(result[0]); // एकच contact object परत
+            res.json(result[0]);
         }
     );
 };
 
-
 // Update contact
-// exports.updateContact = (req, res) => {
-//     const { id } = req.params;
-//     const { name, mobile, email } = req.body;
-//     db.query(
-//         "UPDATE contact_book SET name=?, mobile=?, email=? WHERE id=?", [name, mobile, email, id],
-//         (err, result) => {
-//             if (err) return res.status(500).json(err);
-//             res.json({ message: "Contact updated" });
-//         }
-//     );
-// };
-
 exports.updateContact = (req, res) => {
     const { id } = req.params;
     const { name, mobile, email } = req.body;
 
-    // अपडेट करताना युनिक चेक: स्वतःचा आयडी सोडून इतरांचा मोबाईल/ईमेल मॅच होतोय का पहा (Start of New logic)
     const checkQuery = "SELECT * FROM contact_book WHERE (mobile = ? OR email = ?) AND id != ? AND is_deleted = FALSE";
     db.query(checkQuery, [mobile, email, id], (err, results) => {
         if (err) return res.status(500).json(err);
@@ -114,18 +83,14 @@ exports.updateContact = (req, res) => {
             (err, result) => {
                 if (err) return res.status(500).json(err);
 
-                db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE", (err2, result2) => {
+                db.query("SELECT * FROM contact_book WHERE is_deleted = FALSE ORDER BY name ASC", (err2, result2) => {
                     if (err2) return res.status(500).json(err2);
-                    res.json(result2); // ✅ updated list
+                    res.json(result2);
                 });
             }
         );
     });
-    // (End of New logic)
 };
-
-
-
 
 // Soft delete contact
 exports.deleteContact = (req, res) => {
@@ -137,4 +102,69 @@ exports.deleteContact = (req, res) => {
             res.json({ message: "Contact soft-deleted" });
         }
     );
+};
+
+// Get Summary Statistics
+exports.getSummary = (req, res) => {
+    db.query("SELECT COUNT(*) as totalContacts FROM contact_book WHERE is_deleted = FALSE", (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json(result[0]);
+    });
+};
+
+// Export to PDF
+exports.exportPDF = (req, res) => {
+    db.query("SELECT name, mobile, email FROM contact_book WHERE is_deleted = FALSE ORDER BY name ASC", (err, results) => {
+        if (err) return res.status(500).send("Error generating PDF");
+
+        const doc = new PDFDocument();
+        let filename = "contacts.pdf";
+        res.setHeader("Content-disposition", 'attachment; filename="' + filename + '"');
+        res.setHeader("Content-type", "application/pdf");
+
+        doc.fontSize(20).text("Contact Book Summary", { align: "center" });
+        doc.moveDown();
+
+        results.forEach((contact, index) => {
+            doc.fontSize(12).text(`${index + 1}. ${contact.name}`);
+            doc.fontSize(10).text(`   Mobile: ${contact.mobile}`);
+            doc.fontSize(10).text(`   Email: ${contact.email}`);
+            doc.moveDown();
+        });
+
+        doc.pipe(res);
+        doc.end();
+    });
+};
+
+// Export to Excel
+exports.exportExcel = (req, res) => {
+    db.query("SELECT name, mobile, email FROM contact_book WHERE is_deleted = FALSE ORDER BY name ASC", async (err, results) => {
+        if (err) return res.status(500).send("Error generating Excel");
+
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Contacts");
+
+        worksheet.columns = [
+            { header: "Sr. No", key: "srno", width: 10 },
+            { header: "Name", key: "name", width: 30 },
+            { header: "Mobile", key: "mobile", width: 20 },
+            { header: "Email", key: "email", width: 30 },
+        ];
+
+        results.forEach((contact, index) => {
+            worksheet.addRow({
+                srno: index + 1,
+                name: contact.name,
+                mobile: contact.mobile,
+                email: contact.email,
+            });
+        });
+
+        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        res.setHeader("Content-Disposition", "attachment; filename=contacts.xlsx");
+
+        await workbook.xlsx.write(res);
+        res.end();
+    });
 };

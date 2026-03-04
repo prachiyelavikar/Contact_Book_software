@@ -1,103 +1,129 @@
-<!-- <html>
-
-<head>
-    <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-    <h3>Contact Book</h3>
-
-
-    <form id="form-container">
-        <input type="text" id="name" placeholder="Name"><br><br>
-        <input type="tel" id="mobile" placeholder="Mobile Number"><br><br>
-        <input type="email" id="email" placeholder="Email ID"><br><br>
-        <button type="submit">Save Contact</button>
-    </form>
-
-    <table>
-        <thead>
-            <th>Action</th>
-            <th>Name</th>
-            <th>Mobile Number</th>
-            <th>Email</th>
-        </thead>
-        <tbody>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tbody>
-    </table>
-</body>
-
-</html> -->
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
-    <title>Contact Book11</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Contact Book</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body>
-    <div class="form-content">
-        <h1> Contact Book</h1>
-        <!-- नोटिफिकेशन दाखवण्यासाठी कंटेनर (New addition) -->
+    <!-- Loader -->
+    <div id="loader" class="loader-container">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-address-book"></i> Professional Contact Book</h1>
+        </header>
+
+        <div class="dashboard-strip">
+            <div class="summary-card">
+                <i class="fas fa-users"></i>
+                <div class="summary-info">
+                    <span class="summary-label">Total Contacts</span>
+                    <span id="totalContacts" class="summary-value">0</span>
+                    <span id="searchFeedback" class="search-feedback"></span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="darkModeToggle" class="btn icon-btn" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="export-buttons">
+                    <button id="downloadPDF" class="btn export-btn pdf"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button id="downloadExcel" class="btn export-btn excel"><i class="fas fa-file-excel"></i>
+                        Excel</button>
+                </div>
+            </div>
+        </div>
+
         <div id="notification" class="notification"></div>
 
+        <!-- Add Contact Section -->
+        <section class="add-contact-section">
+            <form id="contactForm" class="contact-form">
+                <div class="form-row">
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="name" placeholder="Full Name" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-phone"></i>
+                        <input type="tel" id="mobile" placeholder="Mobile Number" maxlength="10" required>
+                    </div>
+                    <div class="input-group">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" placeholder="Email Address" required>
+                    </div>
+                    <button type="submit" class="btn primary-btn">Save Contact</button>
+                </div>
+            </form>
+        </section>
 
-
-        <!-- Contact Form -->
-        <form id="contactForm">
-            <input type="text" id="name" placeholder="Name" required>
-            <input type="tel" id="mobile" placeholder="Mobile Number" required>
-            <input type="email" id="email" placeholder="Email ID" required>
-            <button type="submit">Save Contact</button>
-        </form>
-
-
-        <input type="text" class="search-box" id="searchInput" placeholder="Search by name...">
-
-        <!-- <div class="top-bar">
-            <input type="text" id="searchInput" placeholder=" Search by name...">
-            <button id="searchBtn">Search</button>
-        </div> -->
-        <!-- <div class="top-bar">
-            <input type="text" id="searchInput" [(ngModel)]="searchText" placeholder="Search by name..." name="search" class="search-input" />
-
-            <button nz-button nzType="primary" name="button1" id="button1" (click)="search(true)" nzSearch>
-    <i nz-icon nzType="search"></i>
-  </button>
-        </div> -->
+        <!-- Search and Filter -->
+        <div class="table-controls">
+            <div class="search-group">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search by name, mobile or email...">
+            </div>
+        </div>
 
         <!-- Contacts Table -->
-        <table id="contactTable">
-            <thead>
-                <tr>
+        <div class="table-container">
+            <table id="contactTable">
+                <thead>
+                    <tr>
+                        <th width="60px">Sr. No.</th>
+                        <th width="60px"></th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Email</th>
+                        <th width="150px">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Loaded dynamically -->
+                </tbody>
+            </table>
+        </div>
 
-                    <th>Name</th>
-                    <th>Mobile</th>
-                    <th>Email</th>
-                    <th>Actions</th>
+        <!-- Pagination -->
+        <div id="pagination" class="pagination-container">
+            <!-- Buttons will be injected here -->
+        </div>
+    </div>
 
-                </tr>
-            </thead>
-            <tbody>
-                <!-- <tr>
-                    <td style="color: blue;">Delete/Edit</td>
-                    <td>aditi</td>
-                    <td>6789786789</td>
-                    <td>aditi@gmail.com</td>
-                </tr> -->
-
-            </tbody>
-        </table>
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Contact</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <form id="editForm" class="modal-form">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="editName" placeholder="Full Name" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="editMobile" placeholder="Mobile Number" maxlength="10" required>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="editEmail" placeholder="Email Address" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn secondary-btn close-btn">Cancel</button>
+                    <button type="submit" class="btn primary-btn">Update Contact</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script src="script.js"></script>
