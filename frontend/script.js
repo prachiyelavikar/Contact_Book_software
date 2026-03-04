@@ -1,6 +1,6 @@
 // API Configuration
-// const API_BASE_URL = 'http://localhost:3000/api/contacts';
-const API_BASE_URL = 'https://contact-book-software-2.onrender.com/api/contacts';
+const API_BASE_URL = 'http://localhost:3000/api/contacts';
+// const API_BASE_URL = 'https://contact-book-software-2.onrender.com/api/contacts';
 
 // DOM Elements
 const contactForm = document.getElementById('contactForm');
@@ -210,11 +210,13 @@ function renderTable() {
     const filterText = searchInput.value.toLowerCase();
     tableBody.innerHTML = '';
 
-    const filtered = allContacts.filter(c =>
-        c.name.toLowerCase().includes(filterText) ||
-        c.mobile.toLowerCase().includes(filterText) ||
-        c.email.toLowerCase().includes(filterText)
-    );
+    const filtered = allContacts.filter(c => {
+        const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('en-GB') : '';
+        return c.name.toLowerCase().includes(filterText) ||
+            c.mobile.toLowerCase().includes(filterText) ||
+            c.email.toLowerCase().includes(filterText) ||
+            dateStr.includes(filterText);
+    });
 
     if (filterText) {
         searchFeedbackEl.textContent = ` (Found ${filtered.length} of ${allContacts.length})`;
@@ -223,7 +225,7 @@ function renderTable() {
     }
 
     if (filtered.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 40px;">No contacts found</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 40px;">No contacts found</td></tr>';
         paginationContainer.innerHTML = '';
         return;
     }
@@ -240,6 +242,15 @@ function renderTable() {
         const initials = getInitials(c.name);
         const color = getRandomColor(c.name);
 
+        // Robust date parsing
+        let dateStr = 'N/A';
+        if (c.created_at) {
+            const dateObj = new Date(c.created_at);
+            if (!isNaN(dateObj)) {
+                dateStr = dateObj.toLocaleDateString('en-GB');
+            }
+        }
+
         row.innerHTML = `
             <td data-label="Sr. No.">${startIndex + index + 1}</td>
             <td>
@@ -248,6 +259,7 @@ function renderTable() {
             <td data-label="Name">${highlightText(c.name, filterText)}</td>
             <td data-label="Mobile">${highlightText(c.mobile, filterText)}</td>
             <td data-label="Email">${highlightText(c.email, filterText)}</td>
+            <td data-label="Date">${highlightText(dateStr, filterText)}</td>
             <td data-label="Actions">
                 <div class="action-btns">
                     <button class="btn edit-btn" onclick="openEditModal(${c.id})"><i class="fas fa-edit"></i></button>

@@ -114,7 +114,7 @@ exports.getSummary = (req, res) => {
 
 // Export to PDF
 exports.exportPDF = (req, res) => {
-    db.query("SELECT name, mobile, email FROM contact_book WHERE is_deleted = FALSE ORDER BY name ASC", (err, results) => {
+    db.query("SELECT name, mobile, email, created_at FROM contact_book WHERE is_deleted = FALSE ORDER BY name ASC", (err, results) => {
         if (err) return res.status(500).send("Error generating PDF");
 
         const doc = new PDFDocument();
@@ -126,9 +126,11 @@ exports.exportPDF = (req, res) => {
         doc.moveDown();
 
         results.forEach((contact, index) => {
+            const date = typeof contact.created_at === 'string' ? contact.created_at : new Date(contact.created_at).toLocaleDateString('en-GB');
             doc.fontSize(12).text(`${index + 1}. ${contact.name}`);
             doc.fontSize(10).text(`   Mobile: ${contact.mobile}`);
             doc.fontSize(10).text(`   Email: ${contact.email}`);
+            doc.fontSize(10).text(`   Date: ${date}`);
             doc.moveDown();
         });
 
@@ -139,7 +141,7 @@ exports.exportPDF = (req, res) => {
 
 // Export to Excel
 exports.exportExcel = (req, res) => {
-    db.query("SELECT name, mobile, email FROM contact_book WHERE is_deleted = FALSE ORDER BY name ASC", async (err, results) => {
+    db.query("SELECT name, mobile, email, created_at FROM contact_book WHERE is_deleted = FALSE ORDER BY name ASC", async (err, results) => {
         if (err) return res.status(500).send("Error generating Excel");
 
         const workbook = new ExcelJS.Workbook();
@@ -150,14 +152,17 @@ exports.exportExcel = (req, res) => {
             { header: "Name", key: "name", width: 30 },
             { header: "Mobile", key: "mobile", width: 20 },
             { header: "Email", key: "email", width: 30 },
+            { header: "Date", key: "date", width: 20 },
         ];
 
         results.forEach((contact, index) => {
+            const date = typeof contact.created_at === 'string' ? contact.created_at : new Date(contact.created_at).toLocaleDateString('en-GB');
             worksheet.addRow({
                 srno: index + 1,
                 name: contact.name,
                 mobile: contact.mobile,
                 email: contact.email,
+                date: date,
             });
         });
 
