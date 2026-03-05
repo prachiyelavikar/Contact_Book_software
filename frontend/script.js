@@ -1,6 +1,6 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:3000/api/contacts';
-// const API_BASE_URL = 'https://contact-book-software-2.onrender.com/api/contacts';
+// const API_BASE_URL = 'http://localhost:3000/api/contacts';
+const API_BASE_URL = 'https://contact-book-software-2.onrender.com/api/contacts';
 
 // DOM Elements
 const contactForm = document.getElementById('contactForm');
